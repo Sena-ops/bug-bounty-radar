@@ -1,0 +1,6 @@
+@BugBountyRadar.Api_HostAddress = http://localhost:5259
+
+GET {{BugBountyRadar.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
