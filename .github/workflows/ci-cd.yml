@@ -1,0 +1,72 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20'
+
+jobs:
+  ## 1) BACKEND – build & test ----------------------------------------------
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore / Build / Test
+        run: |
+          dotnet restore src/api
+          dotnet build -c Release --no-restore src/api
+          dotnet test  -c Release --no-build   src/api
+
+  ## 2) FRONTEND – build & test ---------------------------------------------
+  frontend:
+    runs-on: ubuntu-latest
+    needs: backend          # só roda se backend passou
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install deps / Build / Test
+        run: |
+          npm ci          --prefix src/web
+          npm run build   --prefix src/web
+          npm test        --prefix src/web   # opcional, mas recomendado
+
+  ## 3) DEPLOY – somente se tudo passou -------------------------------------
+  deploy-backend:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy API to Render
+        uses: jsmrcaga/action-deploy-to-render@v1  # marketplace “Deploy to Render”
+        with:
+          service_id:   ${{ secrets.RENDER_SERVICE_ID }}
+          api_key:      ${{ secrets.RENDER_API_KEY }}          # :contentReference[oaicite:0]{index=0}
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - name: Deploy Front to Vercel
+        uses: amondnet/vercel-action@v25           # marketplace “Vercel Action”
+        with:
+          vercel-token:   ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id:  ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}  # :contentReference[oaicite:1]{index=1}
