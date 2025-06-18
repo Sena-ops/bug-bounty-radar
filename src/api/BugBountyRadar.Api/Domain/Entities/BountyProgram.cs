@@ -3,11 +3,12 @@ namespace BugBountyRadar.Api.Domain.Entities;
 
 public class BountyProgram
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public required string Platform { get; set; }   // "HackerOne", "Bugcrowd"…
-    public required string Name { get; set; }
+    public string Id { get; set; } = default!;   // agora string
+    public string Platform { get; set; } = default!;
+    public string Name { get; set; } = default!;
     public decimal? MinReward { get; set; }
-    public List<Technology> Technologies { get; set; } = [];
+    public List<string> Technologies { get; set; } = new();
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }
+
 
