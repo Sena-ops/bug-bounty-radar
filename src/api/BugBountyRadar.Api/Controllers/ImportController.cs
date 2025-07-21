@@ -14,3 +14,4 @@ public class ImportController(HackerOneImporter importer) : ControllerBase
         return Ok(new { imported = count });
     }
 }
+
